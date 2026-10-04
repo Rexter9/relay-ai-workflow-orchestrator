@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* Custom theme tokens — Tailwind v4 reads these to generate utility classes
+   like bg-accent-500, text-accent-700, shadow-soft, etc. */
+@theme {
+  --color-accent-50: #eef2ff;
+  --color-accent-100: #e0e7ff;
+  --color-accent-500: #4f46e5;
+  --color-accent-600: #4338ca;
+  --color-accent-700: #3730a3;
+
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 8px rgba(15, 23, 42, 0.04);
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  background-color: #f8f9fb;
+  color: #1a1a1a;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Thin, unobtrusive scrollbar — small detail that makes a UI feel finished */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}

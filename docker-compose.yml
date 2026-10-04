@@ -1,0 +1,83 @@
+# Relay — Docker Compose setup
+#
+# This brings up 4 containers:
+#   1. redis    - job queue broker used by BullMQ
+#   2. backend  - Express API server
+#   3. worker   - the queue consumer that actually executes workflow runs
+#                 (same image as backend, different start command)
+#   4. frontend - the React console, built and served by nginx
+#
+# MongoDB is NOT included as a container here — this project uses MongoDB
+# Atlas (cloud), so the connection string just needs to be set in
+# backend/.env (see backend/.env.example). If you want to run Mongo locally
+# instead, see the commented-out "mongo" service at the bottom of this file.
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: relay-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: relay-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    environment:
+      # Overrides whatever REDIS_URL is in .env so it always points at the
+      # redis container by its service name (containers can't reach each
+      # other via "localhost").
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: relay-worker
+    restart: unless-stopped
+    command: ["node", "src/workerProcess.js"]
+    env_file:
+      - ./backend/.env
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: relay-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  redis_data:
+
+# ---- Optional: run MongoDB locally instead of Atlas ----
+# Uncomment this service and set MONGODB_URI=mongodb://mongo:27017/relay
+# in backend/.env if you don't want to depend on an internet connection
+# to Atlas during the demo.
+#
+#  mongo:
+#    image: mongo:7
+#    container_name: relay-mongo
+#    restart: unless-stopped
+#    ports:
+#      - "27017:27017"
+#    volumes:
+#      - mongo_data:/data/db
+#
+# (and add "mongo_data:" under the volumes: section above)
