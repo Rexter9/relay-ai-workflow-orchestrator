@@ -1,7 +1,10 @@
 import axios from "axios";
 
-// Backend base URL — persisted in localStorage so it survives page reloads.
-const getApiBase = () => localStorage.getItem("relay_api_base") || "http://localhost:5000";
+// A saved URL lets users override the deployment-specific default.
+const getApiBase = () =>
+  localStorage.getItem("relay_api_base") ||
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://relay-ai-workflow-orchestrator.onrender.com";
 
 export const setApiBase = (url) => {
   localStorage.setItem("relay_api_base", url);
