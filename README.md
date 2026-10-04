@@ -167,3 +167,49 @@ Rebuild with `docker compose up --build`.
   retry/error-handling is itself part of what this project demonstrates.
 - No authentication/login layer yet — the console assumes a single trusted operator, as scoped for this capstone.
 - MongoDB Atlas is the default data store; a local Mongo container is available as an opt-in alternative (section 7).
+
+---
+
+## 10. Deployment
+
+Relay's frontend, API, Redis queue, worker, and MongoDB must be configured
+to communicate with one another. Keep credentials in the hosting providers'
+environment-variable settings; do not commit `.env` files or secrets.
+
+### Frontend (Vercel)
+
+- Set the project root directory to `frontend`.
+- Build command: `npm run build`.
+- Output directory: `dist`.
+- Set `VITE_API_BASE_URL` to the public URL of the deployed backend, for example
+  `https://relay-ai-workflow-orchestrator.onrender.com`.
+
+Vite embeds `VITE_` variables into the frontend at build time. Redeploy the
+frontend after changing this value. The frontend also supports a saved API URL
+override in browser local storage.
+
+### Backend API and worker (Render)
+
+The backend API and queue worker can run as separate services or as two
+processes in one web service. To run both from one Render web service, use
+`backend` as the root directory, `npm install` as the build command, and
+`npm run start:all` as the start command. This starts `src/server.js` and
+`src/workerProcess.js` together.
+
+Configure these environment variables for the service:
+
+- `MONGODB_URI` — connection string for the MongoDB database.
+- `REDIS_URL` — URL for the same Redis instance used by both API and worker.
+- `GEMINI_API_KEY` — required for workflow steps that use Gemini.
+
+If API and worker run as separate services, configure the same `MONGODB_URI`,
+`REDIS_URL`, and `GEMINI_API_KEY` for both, and start the worker with
+`node src/workerProcess.js`. Redis must be reachable from both services; a
+Docker Compose hostname such as `redis:6379` is only valid inside that
+Compose network.
+
+### Docker Compose
+
+For a self-contained local deployment, follow [Running with Docker](#5-running-with-docker).
+The Compose stack starts the frontend, API, Redis, and worker; MongoDB is
+configured separately (MongoDB Atlas by default).
